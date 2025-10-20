@@ -341,7 +341,7 @@ begin
 
       -- Fabric clock and reset
       clk_clk       => fpga_clk1_50,
-      reset_reset_n => rst_n,
+      reset_reset_n => rst_n
 
       -- LTC2308 ADC
     );
