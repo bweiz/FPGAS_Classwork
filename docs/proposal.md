@@ -7,6 +7,8 @@ Describe one of the hardware and software proposals. The hardware and software m
 ## Hardware/software proposal 2
 Describe the other hardware and software proposal. The hardware and software must work together. Include a brief description of the hardware/software interface (e.g., what sort of registers will you create/use, etc.)
 
+## Combined proposal
+
 ## Extra credit
 Define any extra credit proposals here.
 
