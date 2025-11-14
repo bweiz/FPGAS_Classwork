@@ -1,16 +1,21 @@
 # Final project proposal
-This file is the template for your final project proposal. Please update this file with your proposal details (delete these first two sentences, please :slightly_smiling_face:)
 
 ## Hardware/software proposal 1
-Describe one of the hardware and software proposals. The hardware and software must work together. Include a brief description of the hardware/software interface (e.g., what sort of registers will you create/use, etc.)
+Hardware: Push Button
+Software: Pressing the push button cycles through a wide range of preset colors on the RGB LED.
 
 ## Hardware/software proposal 2
-Describe the other hardware and software proposal. The hardware and software must work together. Include a brief description of the hardware/software interface (e.g., what sort of registers will you create/use, etc.)
+Hardware: LED Array
+Software: The LED Array displays the number of processes currently running in linux.
 
 ## Combined proposal
-
-## Extra credit
-Define any extra credit proposals here.
+The push button will cycle between different colors on the RGB LED before returning control to the potentiometers. The LED array will constanty display the amount of processes running in Linux in binary.
 
 ## Division of labor
-Briefly describe who will be working on what. For extra credit tasks and any software above the driver level, it is okay for both group members to work on a single piece, so long as the division of labor and responsibilities are clear.
+### Mark
+ - Hardware for push button, including VHDL.
+ - Software for LED array, including driver and user space code.
+
+### Ben
+ - Hardware for LED array, including VHDL.
+ - Software for push button including driver and user space code.
