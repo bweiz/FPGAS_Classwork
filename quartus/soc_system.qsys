@@ -38,6 +38,27 @@
          type = "int";
       }
    }
+   element rgb_led_avalon_0
+   {
+      datum _sortIndex
+      {
+         value = "3";
+         type = "int";
+      }
+   }
+   element rgb_led_avalon_0.avalon_slave_0
+   {
+      datum _lockedAddress
+      {
+         value = "0";
+         type = "boolean";
+      }
+      datum baseAddress
+      {
+         value = "1569840";
+         type = "String";
+      }
+   }
    element soc_system
    {
       datum _originalDeviceFamily
@@ -347,6 +368,11 @@
  <interface name="hps_spim0" internal="hps.spim0" />
  <interface name="hps_spim0_sclk_out" internal="hps.spim0_sclk_out" />
  <interface name="memory" internal="hps.memory" type="conduit" dir="end" />
+ <interface
+   name="pwm_rgb"
+   internal="rgb_led_avalon_0.pwm_rgb"
+   type="conduit"
+   dir="end" />
  <interface name="reset" internal="fpga_clk.clk_in_reset" type="reset" dir="end" />
  <module name="fpga_clk" kind="clock_source" version="24.1" enabled="1">
   <parameter name="clockFrequency" value="50000000" />
@@ -898,11 +924,39 @@
   <parameter name="PLI_PORT" value="50000" />
   <parameter name="USE_PLI" value="0" />
  </module>
+ <module
+   name="rgb_led_avalon_0"
+   kind="rgb_led_avalon"
+   version="1.0"
+   enabled="1" />
+ <connection
+   kind="avalon"
+   version="24.1"
+   start="hps.h2f_lw_axi_master"
+   end="rgb_led_avalon_0.avalon_slave_0">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0017f430" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="24.1"
+   start="jtag_master.master"
+   end="rgb_led_avalon_0.avalon_slave_0">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0017f430" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
  <connection
    kind="clock"
    version="24.1"
    start="fpga_clk.clk"
    end="jtag_master.clk" />
+ <connection
+   kind="clock"
+   version="24.1"
+   start="fpga_clk.clk"
+   end="rgb_led_avalon_0.clock" />
  <connection
    kind="clock"
    version="24.1"
@@ -913,6 +967,11 @@
    version="24.1"
    start="fpga_clk.clk_reset"
    end="jtag_master.clk_reset" />
+ <connection
+   kind="reset"
+   version="24.1"
+   start="fpga_clk.clk_reset"
+   end="rgb_led_avalon_0.reset" />
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
  <interconnectRequirement for="$system" name="qsys_mm.maxAdditionalLatency" value="1" />
 </system>

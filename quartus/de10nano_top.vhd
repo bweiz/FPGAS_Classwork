@@ -180,6 +180,10 @@ end entity de10nano_top;
 
 architecture de10nano_arch of de10nano_top is
 
+  signal led_r : std_logic;
+  signal led_g : std_logic;
+  signal led_b : std_logic;
+
   component soc_system is
     port (
       hps_io_hps_io_emac1_inst_tx_clk : out   std_logic;
@@ -247,7 +251,10 @@ architecture de10nano_arch of de10nano_top is
       memory_mem_dm                   : out   std_logic_vector(3 downto 0);
       memory_oct_rzqin                : in    std_logic;
       clk_clk                         : in    std_logic;
-      reset_reset_n                   : in    std_logic
+      reset_reset_n                   : in    std_logic;
+		pwm_rgb_pwm_r						  : out   std_logic;
+		pwm_rgb_pwm_g						  : out   std_logic;
+		pwm_rgb_pwm_b						  : out	 std_logic
     );
   end component soc_system;
 
@@ -340,10 +347,19 @@ begin
       memory_oct_rzqin   => hps_ddr3_rzq,
 
       -- Fabric clock and reset
-      clk_clk       => fpga_clk1_50,
-      reset_reset_n => rst_n
+      clk_clk       		=> fpga_clk1_50,
+      reset_reset_n 		=> rst_n,
+		
+		-- RGB LEDs
+		pwm_rgb_pwm_r		=> led_r,
+		pwm_rgb_pwm_g		=> led_g,
+		pwm_rgb_pwm_b		=> led_b
 
       -- LTC2308 ADC
     );
+	 
+	 gpio_0(0) <= not led_r;
+	 gpio_0(1) <= not led_g;
+	 gpio_0(2) <= not led_b;
 
 end architecture de10nano_arch;
