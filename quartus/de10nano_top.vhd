@@ -183,6 +183,7 @@ architecture de10nano_arch of de10nano_top is
   signal led_r : std_logic;
   signal led_g : std_logic;
   signal led_b : std_logic;
+  
 
   component soc_system is
     port (
@@ -254,7 +255,11 @@ architecture de10nano_arch of de10nano_top is
       reset_reset_n                   : in    std_logic;
 		pwm_rgb_pwm_r						  : out   std_logic;
 		pwm_rgb_pwm_g						  : out   std_logic;
-		pwm_rgb_pwm_b						  : out	 std_logic
+		pwm_rgb_pwm_b						  : out	 std_logic;
+		adc_sclk								  : out	 std_logic;
+		adc_cs_n								  : out   std_logic;
+		adc_dout								  : in    std_logic;
+		adc_din								  : out   std_logic
     );
   end component soc_system;
 
@@ -353,9 +358,13 @@ begin
 		-- RGB LEDs
 		pwm_rgb_pwm_r		=> led_r,
 		pwm_rgb_pwm_g		=> led_g,
-		pwm_rgb_pwm_b		=> led_b
+		pwm_rgb_pwm_b		=> led_b,
 
       -- LTC2308 ADC
+		adc_sclk				=> adc_sck,
+		adc_cs_n				=> adc_convst,
+		adc_din				=> adc_sdi,
+		adc_dout				=> adc_sdo
     );
 	 
 	 gpio_0(0) <= not led_r;
