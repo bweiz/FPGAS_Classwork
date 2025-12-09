@@ -54,6 +54,22 @@
          type = "int";
       }
    }
+   element ledbus_avalon_0
+   {
+      datum _sortIndex
+      {
+         value = "6";
+         type = "int";
+      }
+   }
+   element ledbus_avalon_0.avalon_slave_0
+   {
+      datum baseAddress
+      {
+         value = "1569872";
+         type = "String";
+      }
+   }
    element pll_0
    {
       datum _sortIndex
@@ -80,6 +96,38 @@
       datum baseAddress
       {
          value = "1569840";
+         type = "String";
+      }
+   }
+   element soc_system
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
+   element soc_system
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
+   element soc_system
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
+   element soc_system
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
          type = "String";
       }
    }
@@ -396,6 +444,11 @@
  <interface name="hps_io" internal="hps.hps_io" type="conduit" dir="end" />
  <interface name="hps_spim0" internal="hps.spim0" />
  <interface name="hps_spim0_sclk_out" internal="hps.spim0_sclk_out" />
+ <interface
+   name="led_bus"
+   internal="ledbus_avalon_0.led_bus"
+   type="conduit"
+   dir="end" />
  <interface name="memory" internal="hps.memory" type="conduit" dir="end" />
  <interface
    name="pwm_rgb"
@@ -961,6 +1014,7 @@
   <parameter name="PLI_PORT" value="50000" />
   <parameter name="USE_PLI" value="0" />
  </module>
+ <module name="ledbus_avalon_0" kind="ledbus_avalon" version="1.0" enabled="1" />
  <module name="pll_0" kind="altera_pll" version="24.1" enabled="1">
   <parameter name="debug_print_output" value="false" />
   <parameter name="debug_use_rbc_taf_method" value="false" />
@@ -1190,6 +1244,15 @@
  <connection
    kind="avalon"
    version="24.1"
+   start="hps.h2f_lw_axi_master"
+   end="ledbus_avalon_0.avalon_slave_0">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0017f450" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="24.1"
    start="jtag_master.master"
    end="adc_0.adc_slave">
   <parameter name="arbitrationPriority" value="1" />
@@ -1206,6 +1269,15 @@
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
+   kind="avalon"
+   version="24.1"
+   start="jtag_master.master"
+   end="ledbus_avalon_0.avalon_slave_0">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0017f450" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
    kind="clock"
    version="24.1"
    start="fpga_clk.clk"
@@ -1215,6 +1287,11 @@
    version="24.1"
    start="fpga_clk.clk"
    end="rgb_led_avalon_0.clock" />
+ <connection
+   kind="clock"
+   version="24.1"
+   start="fpga_clk.clk"
+   end="ledbus_avalon_0.clock" />
  <connection
    kind="clock"
    version="24.1"
@@ -1242,6 +1319,11 @@
    version="24.1"
    start="fpga_clk.clk_reset"
    end="pll_0.reset" />
+ <connection
+   kind="reset"
+   version="24.1"
+   start="fpga_clk.clk_reset"
+   end="ledbus_avalon_0.reset" />
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
  <interconnectRequirement for="$system" name="qsys_mm.maxAdditionalLatency" value="1" />
 </system>
