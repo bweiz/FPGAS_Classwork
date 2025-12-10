@@ -36,6 +36,8 @@ begin
             case avs_address is
                 when "00" => 
                     avs_readdata <= (0 => button_status, others => '0');
+                when others =>
+                    avs_readdata <= (others => '0');
             end case;
         end if;
     end process;
@@ -51,6 +53,8 @@ begin
             case avs_address is
                 when "00" =>
                     button_status <= avs_writedata(1);
+                when others =>
+                    null;
             end case;
         end if;
     end process;
