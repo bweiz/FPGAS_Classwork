@@ -2,6 +2,14 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+-- PWM RGB LED controller
+-- 
+-- Generates PWM signals for Red, Green, and Blue channels based on input duty cycles and period
+--   - One for each color channel
+--   - Share same period, but have independent duty cycles
+-- Bridge between avalon registers and actual pins
+--
+
 entity pwm_rgb is
     port (
         clk       : in  std_logic;
