@@ -87,7 +87,6 @@ static int read_u16(const char *path, uint16_t *out)
 
     unsigned int tmp = 0;
     if (fscanf(f, "%u", &tmp) != 1) {
-        fprintf(stderr, "Failed to parse integer from %s\n", path);
         fclose(f);
         return -1;
     }
