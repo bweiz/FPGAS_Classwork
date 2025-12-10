@@ -89,7 +89,7 @@ static ssize_t led_patterns_read(struct file *file, char __user *buf, size_t cou
         return 0;
     }
     if ((*offset % 0x4) != 0) {
-        pr_warn("led_patterns_read: unaligned access\n");
+        pr_warn("led_bar_read: unaligned access\n");
         return -EFAULT;
     }
 
@@ -97,7 +97,7 @@ static ssize_t led_patterns_read(struct file *file, char __user *buf, size_t cou
 
     ret = copy_to_user(buf, &val, sizeof(val));
     if (ret == sizeof(val)) {
-        pr_warn("led_patterns_read: nothing copied\n");
+        pr_warn("led_bar_read: nothing copied\n");
         return -EFAULT;
     }
 
@@ -134,7 +134,7 @@ static ssize_t led_patterns_write(struct file *file, const char __user *buf,
         return 0;
     }
     if ((*offset % 0x4) != 0) {
-        pr_warn("led_patterns_write: unaligned access\n");
+        pr_warn("led_bar_write: unaligned access\n");
         return -EFAULT;
     }
 
@@ -149,7 +149,7 @@ static ssize_t led_patterns_write(struct file *file, const char __user *buf,
         ret = sizeof(val);
     }
     else {
-        pr_warn("led_patterns_write: nothing copied from user space\n");
+        pr_warn("led_bar_write: nothing copied from user space\n");
         ret = -EFAULT;
     }
 
@@ -232,7 +232,7 @@ static int led_patterns_probe(struct platform_device *pdev)
 
     // Initialize the misc device parameters
     priv->miscdev.minor = MISC_DYNAMIC_MINOR;
-    priv->miscdev.name = "led_patterns";
+    priv->miscdev.name = "led_bar";
     priv->miscdev.fops = &led_patterns_fops;
     priv->miscdev.parent = &pdev->dev;
     // Register the misc device; this creates a char dev at /dev/led_patterns
@@ -255,7 +255,7 @@ static int led_patterns_probe(struct platform_device *pdev)
     */
     platform_set_drvdata(pdev, priv);
 
-    pr_info("led_patterns_probe successful\n");
+    pr_info("led bar probe successful\n");
 
     return 0;
 }
@@ -277,7 +277,7 @@ static void led_patterns_remove(struct platform_device *pdev)
     // Deregister the misc device and remove the /dev/led_patterns file.
     misc_deregister(&priv->miscdev);
 
-    pr_info("led_patterns_remove successful\n");
+    pr_info("led bar remove successful\n");
 }
 
 
@@ -318,6 +318,6 @@ static struct platform_driver led_patterns_driver = {
 */
 module_platform_driver(led_patterns_driver);
 MODULE_LICENSE("Dual MIT/GPL");
-MODULE_AUTHOR("Your Name");
+MODULE_AUTHOR("SDC");
 MODULE_DESCRIPTION("led_bar driver");
 MODULE_VERSION("1.0");
