@@ -46,6 +46,16 @@ static ssize_t push_button_reg_store(struct device *dev,
     return size;
 }
 
+// Define sysfs attributes
+static DEVICE_ATTR_RW(push_button_reg);
+// Create an attribute group so the device core can
+// export the attributes for us.
+static struct attribute *push_button_attrs[] = {
+    &dev_attr_push_button_reg.attr,
+    NULL,
+};
+ATTRIBUTE_GROUPS(push_button);
+
 static ssize_t push_button_read(struct file *file, char __user *buf, size_t count, loff_t *offset)
 {
     size_t ret;
@@ -117,15 +127,7 @@ static ssize_t push_button_write(struct file *file, const char __user *buf,
     return ret;
 }
 
-// Define sysfs attributes
-static DEVICE_ATTR_RW(push_button_reg);
-// Create an attribute group so the device core can
-// export the attributes for us.
-static struct attribute *push_button_attrs[] = {
-    &dev_attr_push_button_reg.attr,
-    NULL,
-};
-ATTRIBUTE_GROUPS(push_button);
+
 
 /**
 * led_patterns_fops - File operations supported by the
@@ -167,10 +169,10 @@ static int push_button_probe(struct platform_device *pdev)
     * see the kmalloc documentation for more info. The allocated memory
     * is automatically freed when the device is removed.
     */
-    priv = devm_kzalloc(&pdev->dev, sizeof(struct push_button_dev),
+    priv = devm_kzalloc(&pdev->dev, sizeof(*priv),
     GFP_KERNEL);
     if (!priv) {
-        pr_err("Failed to allocate memory\n");
+        pr_err("Push Button:Failed to allocate memory\n");
         return -ENOMEM;
     }
 
@@ -192,10 +194,10 @@ static int push_button_probe(struct platform_device *pdev)
 
     // Initialize the misc device parameters
     priv->miscdev.minor = MISC_DYNAMIC_MINOR;
-    priv->miscdev.name = "led_patterns";
-    priv->miscdev.fops = &led_patterns_fops;
+    priv->miscdev.name = "push_button";
+    priv->miscdev.fops = &push_button_fops;
     priv->miscdev.parent = &pdev->dev;
-    // Register the misc device; this creates a char dev at /dev/led_patterns
+    // Register the misc device; this creates a char dev at /dev/push_button
     ret = misc_register(&priv->miscdev);
     if (ret) {
         pr_err("Failed to register misc device");
@@ -203,11 +205,6 @@ static int push_button_probe(struct platform_device *pdev)
     }
     /*
     * Attach the led patterns's private data to the platform device's struct.
-    * This is so we can access our state container in the other functions.
-    */
-    platform_set_drvdata(pdev, priv);
-
-    /* Attach the led patterns's private data to the platform device's struct.
     * This is so we can access our state container in the other functions.
     */
     platform_set_drvdata(pdev, priv);
@@ -244,7 +241,7 @@ static void push_button_remove(struct platform_device *pdev)
 * compatible string as defined here.
 */
 static const struct of_device_id push_button_of_match[] = {
-    { .compatible = "sdc63,push_button", },
+    { .compatible = "sdc,push_button", },
     { }
 };
 MODULE_DEVICE_TABLE(of, push_button_of_match);
@@ -258,14 +255,14 @@ MODULE_DEVICE_TABLE(of, push_button_of_match);
 * @driver.name: Name of the led_patterns driver
 * @driver.of_match_table: Device tree match table
 */
-static struct platform_driver pus_button_driver = {
+static struct platform_driver push_button_driver = {
     .probe = push_button_probe,
     .remove = push_button_remove,
     .driver = {
         .owner = THIS_MODULE,
         .name = "push_button",
         .of_match_table = push_button_of_match,
-        .dev_groups = push_button_group,
+        .dev_groups = push_button_groups,
     },
 };
 /*
