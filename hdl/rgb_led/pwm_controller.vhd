@@ -2,6 +2,18 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+-- PWM Controller
+-- Implements a PWM signal based on input period and duty cycle
+-- period: 11.5 fixed point in ms (0 to 2047.96875 ms)
+--     sets total PWM period in clock ticks
+-- duty_cycle: 18.17 fixed point (0 to 1)
+--     fraction of full duty cycle
+-- output is high for 'high_cycles' clock ticks per period
+--
+-- How fpga fabric turns register writes into LED brightness
+-- How period and duty interact to control LED intensity
+
+
 entity pwm_controller is
     generic (
         CLK_PERIOD : time := 20 ns
@@ -32,6 +44,12 @@ architecture pwm_arch of pwm_controller is
     signal pwm_reg              : std_logic := '0';
 
 begin
+
+    -- Main PWM Process
+    --  - Computes how many clock cycles output should stay high
+    --    based on duty_cycle
+    --  - Increments counter from 0 to (period-1) and compares 
+    --    to high_cycles to set output
 
     process(clk, rst)
 

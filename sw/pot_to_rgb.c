@@ -30,7 +30,9 @@
 // duty is 18.17 => scale by 2^17
 #define DUTY_SCALE       (1u << 17)
 
-// write an unsigned integer to a sysfs file
+// write an integer to sysfs
+// driver expects 32 bit value
+// return 0 if successful
 static int write_u32(const char *path, uint32_t value)
 {
     FILE *f = fopen(path, "w");
@@ -40,7 +42,7 @@ static int write_u32(const char *path, uint32_t value)
         return -1;
     }
 
-    if (fprintf(f, "%u\n", value) < 0) {
+    if (fprintf(f, "%u\n", value) < 0) {                    // fprintf returns negative on error
         fprintf(stderr, "Failed to write to %s: %s\n",
                 path, strerror(errno));
         fclose(f);
@@ -62,7 +64,7 @@ static int write_bool(const char *path, int value)
         return -1;
     }
 
-    if (fprintf(f, "%d\n", value ? 1 : 0) < 0) {        // if value nonzero, write 1, else 0
+    if (fprintf(f, "%d\n", value ? 1 : 0) < 0) {                // if value nonzero, write 1, else 0
         fprintf(stderr, "Failed to write to %s: %s\n",
                 path, strerror(errno));
         fclose(f);
@@ -73,7 +75,8 @@ static int write_bool(const char *path, int value)
     return 0;
 }
 
-// read a 16-bit ADC value from sysfs (ch*_raw)
+// read a 16-bit ADC value from sysfs
+// don't need 32 bits since ADC is 12-bit, 16 bits be good enough
 // return 0 if successful
 static int read_u16(const char *path, uint16_t *out)
 {
@@ -85,7 +88,7 @@ static int read_u16(const char *path, uint16_t *out)
     }
 
     unsigned int tmp = 0;
-    if (fscanf(f, "%u", &tmp) != 1) {
+    if (fscanf(f, "%u", &tmp) != 1) {             // fscanf returns 1 if successful
         fprintf(stderr, "Failed to parse integer from %s\n", path);
         fclose(f);
         return -1;
@@ -100,13 +103,13 @@ static int read_u16(const char *path, uint16_t *out)
     return 0;
 }
 
-// Map 12-bit ADC (0 to 4095) to 18.17 fixed-point duty (0 to 1.0)
+// Map 12-bit ADC (0 to 4095) to 18.17 fixed-point duty (0 to 1
 static uint32_t adc_to_duty(uint16_t adc)
 {
-    // Avoid divide-by-zero; ADC is 12-bit in hardware, so 4095 is max.
+    // ADC is 12-bit so 4095 max.
     const uint32_t ADC_MAX = 4095u;
 
-    // Scale 0 to ADC_MAX to 0 to DUTY_SCALE (roughly 0 to 1.0 in 18.17)
+    // Scale 0 to ADC_MAX to 0 to DUTY_SCALE (0 to 1 in 18.17)
     uint32_t duty = (uint32_t)adc * DUTY_SCALE / ADC_MAX;
 
     return duty;
@@ -157,7 +160,7 @@ int main(void)
             usleep(100000);
             continue;
         }
-        // Small delay to avoid busy-looping too fast
+        
         usleep(20000);
     }
 

@@ -8,11 +8,49 @@
 #include <linux/fs.h>
 #include <linux/kstrtox.h>
 
+/*
+ * RGB PWM Driver
+ * 
+ * Device Tree:
+ *   rgb_pwm@ff37f430 {
+ *       compatible = "weizenegger,rgb-pwm";
+ *       reg = <0xff37f430 0x10>;
+ *   };
+ *
+ * Role:
+ *   - Binds to DT node with compatible "weizenegger,rgb-pwm".
+ *   - Ioremaps the 4 RGB PWM registers:
+ *       RED_OFFSET   = 0x00
+ *       GREEN_OFFSET = 0x04
+ *       BLUE_OFFSET  = 0x08
+ *       PERIOD_OFFSET= 0x0C
+ *  - Exposes each register as a sysfs attribute (red/green/blue/period).
+ *  - Registers a misc char device rgb_pwm that allows read/write access
+ *    to all 4 registers via offsets.
+ *
+ *
+ *
+*/
+
+
 #define RED_OFFSET       0x00
 #define GREEN_OFFSET     0x04
 #define BLUE_OFFSET      0x08
 #define PERIOD_OFFSET    0x0C
 #define SPAN             0x10
+
+/* struct rgb_pwm_dev - private rgb_pwm device struct
+ *
+ * @base_addr:   Kernel virtual base address of the mapped reg block.
+ * @red_reg:     address of red reg
+ * @green_reg:   address of green reg
+ * @blue_reg:    address of blue reg
+ * @period_reg:  address of period reg
+ * @miscdev:     miscdevice used to create char device
+ * @lock:        prevent concurrent access to device
+ *
+ * struct created for each rgb_pwm device
+ */
 
 struct rgb_pwm_dev {
     void __iomem *base_addr;
@@ -140,7 +178,9 @@ static ssize_t period_store(struct device *dev,
     return size;
 }
 
-
+/*
+ * Sysfs attributes
+*/
 static DEVICE_ATTR_RW(red);
 static DEVICE_ATTR_RW(green);
 static DEVICE_ATTR_RW(blue);
@@ -250,6 +290,12 @@ static int rgb_pwm_probe(struct platform_device *pdev)
     }
 
     res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+    /*
+     * Request and remap the device's memory region. Requesting the region
+     * make sure nobody else can use that memory. The memory is remapped
+     * into the kernel's virtual address space because we don't have access
+     * to physical memory locations.
+   */
     priv->base_addr = devm_ioremap_resource(&pdev->dev, res);
     if (IS_ERR(priv->base_addr)) {
         pr_err("rgb_pwm: Failed to request/remap platform device resource\n");
@@ -295,6 +341,9 @@ static void rgb_pwm_remove(struct platform_device *pdev)
     pr_info("rgb_pwm_remove\n");
 }
 
+/*
+ * Compatible string
+*/
 static const struct of_device_id rgb_pwm_of_match[] = {
     { .compatible = "weizenegger,rgb-pwm", },
     { }

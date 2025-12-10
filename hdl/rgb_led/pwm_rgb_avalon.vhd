@@ -4,6 +4,18 @@ use ieee.numeric_std.all;
 library std;
 use std.standard;
 
+-- Avalon-MM register map
+--   Base: 0x0017f430
+--   Span: 0x10 bytes (0x0017f430 - 0x0017f43f)
+--     0x0 @ 0x0017f430 : Red Duty Cycle (duty_r)
+--     0x4 @ 0x0017f434 : Green Duty Cycle (duty_g)
+--     0x8 @ 0x0017f438 : Blue Duty Cycle (duty_b)
+--     0xC @ 0x0017f43C : PWM Period (period)
+--
+--  These registers are mapped into HPS address space through
+--  HPS-to-FPGA lightweight bridge.  Linux uses this map to control
+--  the RGB LED PWM controller from sysfs.
+
 entity pwm_rgb_avalon is
     port (
         clk           : in  std_logic;
