@@ -13,6 +13,7 @@
 
 #define ADC_SYSFS_BASE   "/sys/bus/platform/devices/ff37f400.adc"
 #define RGB_SYSFS_BASE   "/sys/bus/platform/devices/ff37f430.rgb_pwm"
+#define BUTTON_PATH      "/home/soc/number.txt"
 
 // ADC attributes
 #define ADC_CH0_RAW      ADC_SYSFS_BASE "/ch0_raw"
@@ -86,7 +87,6 @@ static int read_u16(const char *path, uint16_t *out)
 
     unsigned int tmp = 0;
     if (fscanf(f, "%u", &tmp) != 1) {
-        fprintf(stderr, "Failed to parse integer from %s\n", path);
         fclose(f);
         return -1;
     }
@@ -114,7 +114,7 @@ static uint32_t adc_to_duty(uint16_t adc)
 
 int main(void)
 {
-    uint16_t adc_r = 0, adc_g = 0, adc_b = 0;
+    uint16_t adc_r = 0, adc_g = 0, adc_b = 0, button_num = 0;
 
     printf("pot_to_rgb: starting\n");
 
@@ -144,9 +144,31 @@ int main(void)
             continue;
         }
 
+        if (read_u16(BUTTON_PATH, &button_num) != 0) {
+            button_num = 0;
+        }
+
         uint32_t duty_r = adc_to_duty(adc_r);
         uint32_t duty_g = adc_to_duty(adc_g);
         uint32_t duty_b = adc_to_duty(adc_b);
+
+        switch (button_num) {
+            case 1:
+                duty_r = 0xff * DUTY_SCALE / 0xff;
+                duty_g = 0x0;
+                duty_b = 0x0;
+                break;
+            case 2:
+                duty_r = 0x0;
+                duty_g = 0xff * DUTY_SCALE / 0xff;
+                duty_b = 0x0;
+                break;
+            case 3:
+                duty_r = 0x0;
+                duty_g = 0x0;
+                duty_b = 0xff * DUTY_SCALE / 0xff;
+                break;
+        }
 
         // Write to RGB PWM sysfs
         if (write_u32(RGB_RED, duty_r) != 0 ||
