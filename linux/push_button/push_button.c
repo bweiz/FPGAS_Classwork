@@ -209,7 +209,7 @@ static int push_button_probe(struct platform_device *pdev)
     */
     platform_set_drvdata(pdev, priv);
 
-    pr_info("led_patterns_probe successful\n");
+    pr_info("push button probe successful\n");
 
     return 0;
 }
@@ -230,7 +230,7 @@ static void push_button_remove(struct platform_device *pdev)
     // Deregister the misc device and remove the /dev/led_patterns file.
     misc_deregister(&priv->miscdev);
 
-    pr_info("led_patterns_remove successful\n");
+    pr_info("push button remove successful\n");
 }
 
 
