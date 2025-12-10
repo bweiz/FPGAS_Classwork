@@ -160,7 +160,7 @@ int main(void)
                 duty_b = 0x0;
                 break;
             case 2:
-                duty_r = 0x0
+                duty_r = 0x0;
                 duty_g = 0xff * DUTY_SCALE / 0xff;
                 duty_b = 0x0;
                 break;
