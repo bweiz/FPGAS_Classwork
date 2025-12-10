@@ -1,12 +1,10 @@
 ifneq ($(KERNELRELEASE),)
-# kbuild part of makefile
-obj-m  := de10nano_adc.o
+obj-m := rgb_pwm.o
 
 else
-# normal makefile
 
-# path to kernel directory
 KDIR ?= $(HOME)/eele467/linux-socfpga
+
 
 default:
 	$(MAKE) -C $(KDIR) ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- M=$$PWD
