@@ -400,7 +400,7 @@ static int adc_probe(struct platform_device *pdev)
  * This function is called when an led patterns devicee is removed or
  * the driver is removed.
  */
-static int adc_remove(struct platform_device *pdev)
+static void adc_remove(struct platform_device *pdev)
 {
 	// Get the led patterns's private data from the platform device.
 	struct adc_dev *priv = platform_get_drvdata(pdev);
@@ -410,7 +410,6 @@ static int adc_remove(struct platform_device *pdev)
 
 	pr_info("adc_remove successful\n");
 
-	return 0;
 }
 
 
@@ -421,7 +420,7 @@ static int adc_remove(struct platform_device *pdev)
  * compatible string as defined here.
  */
 static const struct of_device_id adc_of_match[] = {
-	{ .compatible = "adsd,de10nano_adc", },
+	{ .compatible = "weizenegger,de10nano_adc", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, adc_of_match);

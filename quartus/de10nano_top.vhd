@@ -157,7 +157,7 @@ entity de10nano_top is
     --  Pin 29 = 3.3 supply (1.5A max)
     --  Pins 12, 30 = GND
     ----------------------------------------
-    gpio_0 : inout std_ulogic_vector(35 downto 0);
+    gpio_0 : inout std_logic_vector(35 downto 0);
     gpio_1 : inout std_ulogic_vector(35 downto 0);
 
     ----------------------------------------
@@ -179,6 +179,12 @@ entity de10nano_top is
 end entity de10nano_top;
 
 architecture de10nano_arch of de10nano_top is
+
+  signal led_r 	: std_logic;
+  signal led_g 	: std_logic;
+  signal led_b 	: std_logic;
+  signal led_bus  : std_logic_vector(9 downto 0);
+  signal custom_pb : std_logic;
 
   component soc_system is
     port (
@@ -247,7 +253,16 @@ architecture de10nano_arch of de10nano_top is
       memory_mem_dm                   : out   std_logic_vector(3 downto 0);
       memory_oct_rzqin                : in    std_logic;
       clk_clk                         : in    std_logic;
-      reset_reset_n                   : in    std_logic
+      reset_reset_n                   : in    std_logic;
+		pwm_rgb_pwm_r						  : out   std_logic;
+		pwm_rgb_pwm_g						  : out   std_logic;
+		pwm_rgb_pwm_b						  : out	 std_logic;
+		adc_sclk								  : out	 std_logic;
+		adc_cs_n								  : out   std_logic;
+		adc_dout								  : in    std_logic;
+		adc_din								  : out   std_logic;
+		led_bus_led_out					  : out   std_logic_vector(9 downto 0);
+    push_button_push_button   : in  std_logic
     );
   end component soc_system;
 
@@ -340,10 +355,33 @@ begin
       memory_oct_rzqin   => hps_ddr3_rzq,
 
       -- Fabric clock and reset
-      clk_clk       => fpga_clk1_50,
-      reset_reset_n => rst_n
+      clk_clk       		=> fpga_clk1_50,
+      reset_reset_n 		=> rst_n,
+		
+		-- RGB LEDs
+		pwm_rgb_pwm_r		=> led_r,
+		pwm_rgb_pwm_g		=> led_g,
+		pwm_rgb_pwm_b		=> led_b,
 
       -- LTC2308 ADC
+		adc_sclk				=> adc_sck,
+		adc_cs_n				=> adc_convst,
+		adc_din				=> adc_sdi,
+		adc_dout				=> adc_sdo,
+		
+		-- LED BUS
+		led_bus_led_out   => led_bus,
+		
+		-- Push Button
+		push_button_push_button => custom_pb
     );
+	 
+	 gpio_0(0) <= not led_r;
+	 gpio_0(1) <= not led_g;
+	 gpio_0(2) <= not led_b;
+	 
+	 gpio_0(25 downto 16) <= led_bus;
+
+   custom_pb <= gpio_0(3);
 
 end architecture de10nano_arch;

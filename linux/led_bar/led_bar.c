@@ -8,60 +8,79 @@
 #include <linux/fs.h>
 #include <linux/kstrtox.h>
 
+#define SW_LED_CONTROL_OFFSET 0
 #define SPAN 16
 
-
-struct push_button_dev {
+/**
+* struct led_patterns_dev - Private led patterns device struct.
+* @base_addr: Pointer to the component's base address
+* @sw_led_control: Address of the sw_led_control register
+* @base_period: Address of the base_period register
+* @led_reg: Address of the led_reg register
+*
+* An led_patterns_dev struct gets created for each led patterns component.
+*/
+struct led_patterns_dev {
     void __iomem *base_addr;
-    void __iomem *button_reg;
+    void __iomem *sw_led_control;
     struct miscdevice miscdev;
     struct mutex lock;
 };
 
-
-static ssize_t push_button_reg_show(struct device *dev,
+/**
+* sw_led_control_show() - Return the sw_led_control value
+* to user-space via sysfs.
+* @dev: Device structure for the led_patterns component. This
+* device struct is embedded in the led_patterns' device struct.
+* @attr: Unused.
+* @buf: Buffer that gets returned to user-space.
+*
+* Return: The number of bytes read.
+*/
+static ssize_t sw_led_control_show(struct device *dev,
     struct device_attribute *attr, char *buf)
 {
-    u8 button_reg;
-    struct push_button_dev *priv = dev_get_drvdata(dev);
-    button_reg = ioread32(priv->button_reg);
-    return scnprintf(buf, PAGE_SIZE, "%u\n", button_reg);
+    bool sw_control;
+    // Get the private led_patterns data out of the dev struct
+    struct led_patterns_dev *priv = dev_get_drvdata(dev);
+    sw_control = ioread32(priv->sw_led_control);
+    return scnprintf(buf, PAGE_SIZE, "%u\n", sw_control);
 }
-
-
-static ssize_t push_button_reg_store(struct device *dev,
+/**
+* sw_led_control_store() - Store the sw_led_control value.
+* @dev: Device structure for the led_patterns component. This
+* device struct is embedded in the led_patterns'
+* platform device struct.
+* @attr: Unused.
+* @buf: Buffer that contains the sw_led_control value being written.
+* @size: The number of bytes being written.
+*
+* Return: The number of bytes stored.
+*/
+static ssize_t sw_led_control_store(struct device *dev,
     struct device_attribute *attr, const char *buf, size_t size)
 {
-    u8 button_reg;
+    u8 led_reg;
     int ret;
-    struct push_button_dev *priv = dev_get_drvdata(dev);
-    // Parse the string we received as a u8
+    struct led_patterns_dev *priv = dev_get_drvdata(dev);
+    // Parse the string we received as a bool
     // See https://elixir.bootlin.com/linux/latest/source/lib/kstrtox.c#L289
-    ret = kstrtou8(buf, 0, &button_reg);
+    ret = kstrtou8(buf, 0, &led_reg);
     if (ret < 0) {
+        // kstrtobool returned an error
         return ret;
     }
-    iowrite32(button_reg, priv->button_reg);
+    iowrite32(led_reg, priv->sw_led_control);
     // Write was successful, so we return the number of bytes we wrote.
     return size;
 }
 
-// Define sysfs attributes
-static DEVICE_ATTR_RW(push_button_reg);
-// Create an attribute group so the device core can
-// export the attributes for us.
-static struct attribute *push_button_attrs[] = {
-    &dev_attr_push_button_reg.attr,
-    NULL,
-};
-ATTRIBUTE_GROUPS(push_button);
-
-static ssize_t push_button_read(struct file *file, char __user *buf, size_t count, loff_t *offset)
+static ssize_t led_patterns_read(struct file *file, char __user *buf, size_t count, loff_t *offset)
 {
     size_t ret;
     u32 val;
 
-    struct push_button_dev *priv = container_of(file->private_data, struct push_button_dev, miscdev);
+    struct led_patterns_dev *priv = container_of(file->private_data, struct led_patterns_dev, miscdev);
 
     if (*offset < 0) {
         return -EINVAL;
@@ -70,7 +89,7 @@ static ssize_t push_button_read(struct file *file, char __user *buf, size_t coun
         return 0;
     }
     if ((*offset % 0x4) != 0) {
-        pr_warn("push_button_read: unaligned access\n");
+        pr_warn("led_bar_read: unaligned access\n");
         return -EFAULT;
     }
 
@@ -78,7 +97,7 @@ static ssize_t push_button_read(struct file *file, char __user *buf, size_t coun
 
     ret = copy_to_user(buf, &val, sizeof(val));
     if (ret == sizeof(val)) {
-        pr_warn("push_button_read: nothing copied\n");
+        pr_warn("led_bar_read: nothing copied\n");
         return -EFAULT;
     }
 
@@ -88,14 +107,25 @@ static ssize_t push_button_read(struct file *file, char __user *buf, size_t coun
     return sizeof(val);
 }
 
-static ssize_t push_button_write(struct file *file, const char __user *buf,
+/**
+* led_patterns_write() - Write method for the led_patterns char device
+* @file: Pointer to the char device file struct.
+* @buf: User-space buffer to read the value from.
+* @count: The number of bytes being written.
+* @offset: The byte offset in the file being written to.
+*
+* Return: On success, the number of bytes written is returned and the
+* offset @offset is advanced by this number. On error, a negative error
+* value is returned.
+*/
+static ssize_t led_patterns_write(struct file *file, const char __user *buf,
     size_t count, loff_t *offset)
 {
     size_t ret;
     u32 val;
 
-    struct push_button_dev *priv = container_of(file->private_data,
-        struct push_button_dev, miscdev);
+    struct led_patterns_dev *priv = container_of(file->private_data,
+        struct led_patterns_dev, miscdev);
 
     if (*offset < 0) {
         return -EINVAL;
@@ -104,7 +134,7 @@ static ssize_t push_button_write(struct file *file, const char __user *buf,
         return 0;
     }
     if ((*offset % 0x4) != 0) {
-        pr_warn("push_button_write: unaligned access\n");
+        pr_warn("led_bar_write: unaligned access\n");
         return -EFAULT;
     }
 
@@ -119,7 +149,7 @@ static ssize_t push_button_write(struct file *file, const char __user *buf,
         ret = sizeof(val);
     }
     else {
-        pr_warn("push_button_write: nothing copied from user space\n");
+        pr_warn("led_bar_write: nothing copied from user space\n");
         ret = -EFAULT;
     }
 
@@ -127,7 +157,15 @@ static ssize_t push_button_write(struct file *file, const char __user *buf,
     return ret;
 }
 
-
+// Define sysfs attributes
+static DEVICE_ATTR_RW(sw_led_control);
+// Create an attribute group so the device core can
+// export the attributes for us.
+static struct attribute *led_patterns_attrs[] = {
+    &dev_attr_sw_led_control.attr,
+    NULL,
+};
+ATTRIBUTE_GROUPS(led_patterns);
 
 /**
 * led_patterns_fops - File operations supported by the
@@ -140,10 +178,10 @@ static ssize_t push_button_write(struct file *file, const char __user *buf,
 * @llseek: We use the kernel's default_llseek() function; this allows
 * users to change what position they are writing/reading to/from.
 */
-static const struct file_operations push_button_fops = {
+static const struct file_operations led_patterns_fops = {
     .owner = THIS_MODULE,
-    .read = push_button_read,
-    .write = push_button_write,
+    .read = led_patterns_read,
+    .write = led_patterns_write,
     .llseek = default_llseek,
 };
 
@@ -158,9 +196,9 @@ static const struct file_operations push_button_fops = {
 * driver's probe function is called. This probe function gets called by the
 * kernel when an led_patterns device is found in the device tree.
 */
-static int push_button_probe(struct platform_device *pdev)
+static int led_patterns_probe(struct platform_device *pdev)
 {
-   struct push_button_dev *priv;
+   struct led_patterns_dev *priv;
    size_t ret;
 
     /*
@@ -169,10 +207,10 @@ static int push_button_probe(struct platform_device *pdev)
     * see the kmalloc documentation for more info. The allocated memory
     * is automatically freed when the device is removed.
     */
-    priv = devm_kzalloc(&pdev->dev, sizeof(*priv),
+    priv = devm_kzalloc(&pdev->dev, sizeof(struct led_patterns_dev),
     GFP_KERNEL);
     if (!priv) {
-        pr_err("Push Button:Failed to allocate memory\n");
+        pr_err("Failed to allocate memory\n");
         return -ENOMEM;
     }
 
@@ -189,15 +227,15 @@ static int push_button_probe(struct platform_device *pdev)
     }
 
     // Set the memory addresses for each register.
-    priv->button_reg = priv->base_addr;
+    priv->sw_led_control = priv->base_addr + SW_LED_CONTROL_OFFSET;
 
 
     // Initialize the misc device parameters
     priv->miscdev.minor = MISC_DYNAMIC_MINOR;
-    priv->miscdev.name = "push_button";
-    priv->miscdev.fops = &push_button_fops;
+    priv->miscdev.name = "led_bar";
+    priv->miscdev.fops = &led_patterns_fops;
     priv->miscdev.parent = &pdev->dev;
-    // Register the misc device; this creates a char dev at /dev/push_button
+    // Register the misc device; this creates a char dev at /dev/led_patterns
     ret = misc_register(&priv->miscdev);
     if (ret) {
         pr_err("Failed to register misc device");
@@ -209,7 +247,15 @@ static int push_button_probe(struct platform_device *pdev)
     */
     platform_set_drvdata(pdev, priv);
 
-    pr_info("push button probe successful\n");
+    // Enable software-control mode and turn all the LEDs off, just for fun.
+    iowrite32(0, priv->sw_led_control);
+
+    /* Attach the led patterns's private data to the platform device's struct.
+    * This is so we can access our state container in the other functions.
+    */
+    platform_set_drvdata(pdev, priv);
+
+    pr_info("led bar probe successful\n");
 
     return 0;
 }
@@ -221,16 +267,17 @@ static int push_button_probe(struct platform_device *pdev)
 * This function is called when an led patterns devicee is removed or
 * the driver is removed.
 */
-static void push_button_remove(struct platform_device *pdev)
+static void led_patterns_remove(struct platform_device *pdev)
 {
     // Get the led patterns's private data from the platform device.
-    struct push_button_dev *priv = platform_get_drvdata(pdev);
+    struct led_patterns_dev *priv = platform_get_drvdata(pdev);
     // Disable software-control mode, just for kicks.
+    iowrite32(0, priv->sw_led_control);
 
     // Deregister the misc device and remove the /dev/led_patterns file.
     misc_deregister(&priv->miscdev);
 
-    pr_info("push button remove successful\n");
+    pr_info("led bar remove successful\n");
 }
 
 
@@ -240,11 +287,11 @@ static void push_button_remove(struct platform_device *pdev)
 * to be matched with this driver, its device tree node must use the same
 * compatible string as defined here.
 */
-static const struct of_device_id push_button_of_match[] = {
-    { .compatible = "sdc,push_button", },
+static const struct of_device_id led_patterns_of_match[] = {
+    { .compatible = "sdc,led_bar", },
     { }
 };
-MODULE_DEVICE_TABLE(of, push_button_of_match);
+MODULE_DEVICE_TABLE(of, led_patterns_of_match);
 
 
 /**
@@ -255,22 +302,22 @@ MODULE_DEVICE_TABLE(of, push_button_of_match);
 * @driver.name: Name of the led_patterns driver
 * @driver.of_match_table: Device tree match table
 */
-static struct platform_driver push_button_driver = {
-    .probe = push_button_probe,
-    .remove = push_button_remove,
+static struct platform_driver led_patterns_driver = {
+    .probe = led_patterns_probe,
+    .remove = led_patterns_remove,
     .driver = {
         .owner = THIS_MODULE,
-        .name = "push_button",
-        .of_match_table = push_button_of_match,
-        .dev_groups = push_button_groups,
+        .name = "led_bar",
+        .of_match_table = led_patterns_of_match,
+        .dev_groups = led_patterns_groups,
     },
 };
 /*
 * We don't need to do anything special in module init/exit.
 * This macro automatically handles module init/exit.
 */
-module_platform_driver(push_button_driver);
+module_platform_driver(led_patterns_driver);
 MODULE_LICENSE("Dual MIT/GPL");
-MODULE_AUTHOR("Your Name");
-MODULE_DESCRIPTION("push_button driver");
+MODULE_AUTHOR("SDC");
+MODULE_DESCRIPTION("led_bar driver");
 MODULE_VERSION("1.0");

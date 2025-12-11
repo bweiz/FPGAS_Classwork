@@ -1,0 +1,23 @@
+#include "socfpga_cyclone5_de10nano.dtsi" 
+
+/{ 
+    rgb_pwm: rgb_pwm@ff37f430 { 
+        compatible = "weizenegger,rgb-pwm"; 
+        reg = <0xff37f430 0x10>; 
+    }; 
+        
+    adc: adc@ff37f400 { 
+        compatible = "weizenegger,de10nano_adc"; 
+        reg = <0xff37f400 32>; 
+    }; 
+    
+    ledbar: ledbar@ff37f450 { 
+        compatible = "sdc,led_bar"; 
+        reg = <0xff37f450 32>; 
+    }; 
+    
+    pushbutton: pushbutton@ff37f470 { 
+        compatible = "sdc,push_button"; 
+        reg = <0xff37f470 32>; 
+    }; 
+};
