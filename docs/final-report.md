@@ -8,7 +8,7 @@ Main pieces:
 
 - **Custom FPGA components**
   - Push Button Interface (synchronizer + debouncer + one-pulse generator)
-  - LED Bar Controller (memory-mapped ledbar driver)
+  - LED Bar Controller (memory-mapped ledbar)
 - **Supporting FPGA component**
   - RGB PWM block (`pwm_controller.vhd`, `pwm_rgb.vhd`, `pwm_rgb_avalon.vhd`), which drives the external RGB LED with independent duty cycles per color.
 - **HPS / Linux side**
