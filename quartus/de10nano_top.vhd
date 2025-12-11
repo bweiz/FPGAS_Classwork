@@ -184,7 +184,7 @@ architecture de10nano_arch of de10nano_top is
   signal led_g 	: std_logic;
   signal led_b 	: std_logic;
   signal led_bus  : std_logic_vector(9 downto 0);
-  
+  signal custom_pb : std_logic;
 
   component soc_system is
     port (
@@ -261,7 +261,8 @@ architecture de10nano_arch of de10nano_top is
 		adc_cs_n								  : out   std_logic;
 		adc_dout								  : in    std_logic;
 		adc_din								  : out   std_logic;
-		led_bus_led_out					  : out   std_logic_vector(9 downto 0)
+		led_bus_led_out					  : out   std_logic_vector(9 downto 0);
+    push_button_push_button   : in  std_logic
     );
   end component soc_system;
 
@@ -369,7 +370,10 @@ begin
 		adc_dout				=> adc_sdo,
 		
 		-- LED BUS
-		led_bus_led_out   => led_bus
+		led_bus_led_out   => led_bus,
+		
+		-- Push Button
+		push_button_push_button => custom_pb
     );
 	 
 	 gpio_0(0) <= not led_r;
@@ -377,5 +381,7 @@ begin
 	 gpio_0(2) <= not led_b;
 	 
 	 gpio_0(25 downto 16) <= led_bus;
+
+   custom_pb <= gpio_0(3);
 
 end architecture de10nano_arch;
